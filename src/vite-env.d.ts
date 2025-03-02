@@ -27,5 +27,7 @@ interface Window {
     close: () => void;
     currentUser: () => any;
     logout: () => void;
+    gotrue?: any;
+    _init?: (options: any) => void;
   };
 }

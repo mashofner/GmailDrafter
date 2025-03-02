@@ -1,3 +1,9 @@
 # Enable CORS for all routes
 /*
   Access-Control-Allow-Origin: *
+  
+# Allow Netlify Identity to work properly
+/.netlify/identity
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization

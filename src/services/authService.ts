@@ -48,6 +48,29 @@ export const initAuth = () => {
 // Initialize Netlify Identity after script is loaded
 const initNetlifyIdentity = () => {
   if (window.netlifyIdentity) {
+    // Configure the widget with explicit API URL
+    const apiUrl = `${window.location.origin}/.netlify/identity`;
+    console.log('Setting Netlify Identity API URL:', apiUrl);
+    
+    // Set the API URL explicitly
+    try {
+      // @ts-ignore - Accessing internal property
+      window.netlifyIdentity.gotrue = window.netlifyIdentity.gotrue || {};
+      // @ts-ignore - Accessing internal property
+      window.netlifyIdentity.gotrue.api = window.netlifyIdentity.gotrue.api || {};
+      // @ts-ignore - Accessing internal property
+      window.netlifyIdentity.gotrue.api.apiURL = apiUrl;
+      
+      // Force re-init
+      // @ts-ignore - Accessing internal method
+      if (typeof window.netlifyIdentity._init === 'function') {
+        // @ts-ignore - Accessing internal method
+        window.netlifyIdentity._init({});
+      }
+    } catch (e) {
+      console.error('Error configuring Netlify Identity:', e);
+    }
+    
     // Configure the widget
     window.netlifyIdentity.on('init', (user) => {
       if (config.debug) console.log('Netlify Identity initialized', user ? 'with user' : 'without user');
