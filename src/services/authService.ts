@@ -8,43 +8,31 @@ export interface AuthUser {
   provider: string;
 }
 
-// Check if we're running on Netlify
-const isNetlify = () => {
-  return window.location.hostname.includes('netlify.app') || 
-         window.location.hostname === 'gmaildrafter.comeriandigital.net';
-};
-
 // Initialize Netlify Identity Widget
 export const initAuth = () => {
   if (config.debug) console.log('Initializing auth service');
   
-  if (config.netlify.enabled && isNetlify()) {
-    if (config.debug) console.log('Loading Netlify Identity Widget');
+  // Load the Netlify Identity Widget script
+  const script = document.createElement('script');
+  script.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
+  script.async = true;
+  
+  script.onload = () => {
+    if (config.debug) console.log('Netlify Identity Widget loaded');
     
-    // Load the Netlify Identity Widget script
-    const script = document.createElement('script');
-    script.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
-    script.async = true;
-    
-    script.onload = () => {
-      if (config.debug) console.log('Netlify Identity Widget loaded');
-      
-      // Initialize the widget when it's loaded
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on('init', (user) => {
-          if (config.debug) console.log('Netlify Identity initialized', user ? 'with user' : 'without user');
-        });
-      }
-    };
-    
-    script.onerror = (e) => {
-      console.error('Failed to load Netlify Identity Widget', e);
-    };
-    
-    document.body.appendChild(script);
-  } else {
-    if (config.debug) console.log('Not using Netlify Identity (development mode or disabled)');
-  }
+    // Initialize the widget when it's loaded
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on('init', (user) => {
+        if (config.debug) console.log('Netlify Identity initialized', user ? 'with user' : 'without user');
+      });
+    }
+  };
+  
+  script.onerror = (e) => {
+    console.error('Failed to load Netlify Identity Widget', e);
+  };
+  
+  document.body.appendChild(script);
 };
 
 // Sign in with Netlify Identity
@@ -54,8 +42,8 @@ export const signIn = () => {
   if (window.netlifyIdentity) {
     if (config.debug) console.log('Using Netlify Identity for sign in');
     
-    // Open the Netlify Identity modal with Google provider
-    window.netlifyIdentity.open('login');
+    // Open the Netlify Identity modal
+    window.netlifyIdentity.open();
   } else {
     console.error('Netlify Identity not available');
     throw new Error('Authentication service not available. Please try refreshing the page.');
