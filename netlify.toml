@@ -8,6 +8,12 @@
   to = "/index.html"
   status = 200
 
+# Proxy API requests to the backend when in development
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
 # Enable Netlify Identity
 [template.environment]
   NETLIFY_IDENTITY_ENABLED = "true"

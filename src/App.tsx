@@ -21,19 +21,24 @@ function App() {
   // Initialize authentication
   useEffect(() => {
     if (config.debug) console.log('Initializing authentication');
-    initAuth();
     
-    // Listen for authentication state changes
-    onAuthStateChanged((authUser) => {
-      setUser(authUser);
-      if (authUser) {
-        setSuccess('Successfully signed in!');
-        setTimeout(() => setSuccess(''), 3000);
-      }
-    });
+    // Small delay to ensure DOM is fully loaded
+    setTimeout(() => {
+      initAuth();
+      
+      // Listen for authentication state changes
+      onAuthStateChanged((authUser) => {
+        setUser(authUser);
+        if (authUser) {
+          setSuccess('Successfully signed in!');
+          setTimeout(() => setSuccess(''), 3000);
+        }
+      });
+    }, 100);
   }, []);
 
   const handleSignIn = () => {
+    setError(''); // Clear any previous errors
     try {
       signIn();
     } catch (err: any) {

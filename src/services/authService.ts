@@ -12,27 +12,54 @@ export interface AuthUser {
 export const initAuth = () => {
   if (config.debug) console.log('Initializing auth service');
   
-  // Load the Netlify Identity Widget script
-  const script = document.createElement('script');
-  script.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
-  script.async = true;
+  // Check if the script is already loaded
+  if (window.netlifyIdentity) {
+    if (config.debug) console.log('Netlify Identity Widget already loaded');
+    initNetlifyIdentity();
+    return;
+  }
   
-  script.onload = () => {
-    if (config.debug) console.log('Netlify Identity Widget loaded');
+  // Load the Netlify Identity Widget script if not already loaded
+  const existingScript = document.querySelector('script[src="https://identity.netlify.com/v1/netlify-identity-widget.js"]');
+  
+  if (!existingScript) {
+    if (config.debug) console.log('Loading Netlify Identity Widget script');
+    const script = document.createElement('script');
+    script.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
+    script.async = true;
     
-    // Initialize the widget when it's loaded
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.on('init', (user) => {
-        if (config.debug) console.log('Netlify Identity initialized', user ? 'with user' : 'without user');
-      });
-    }
-  };
-  
-  script.onerror = (e) => {
-    console.error('Failed to load Netlify Identity Widget', e);
-  };
-  
-  document.body.appendChild(script);
+    script.onload = () => {
+      if (config.debug) console.log('Netlify Identity Widget loaded');
+      initNetlifyIdentity();
+    };
+    
+    script.onerror = (e) => {
+      console.error('Failed to load Netlify Identity Widget', e);
+    };
+    
+    document.body.appendChild(script);
+  } else {
+    // Script exists but might not be fully loaded yet
+    if (config.debug) console.log('Netlify Identity Widget script exists, waiting for load');
+    setTimeout(initNetlifyIdentity, 500);
+  }
+};
+
+// Initialize Netlify Identity after script is loaded
+const initNetlifyIdentity = () => {
+  if (window.netlifyIdentity) {
+    // Configure the widget
+    window.netlifyIdentity.on('init', (user) => {
+      if (config.debug) console.log('Netlify Identity initialized', user ? 'with user' : 'without user');
+    });
+    
+    window.netlifyIdentity.on('error', (err) => {
+      console.error('Netlify Identity error:', err);
+    });
+  } else {
+    if (config.debug) console.log('Netlify Identity not available yet, retrying...');
+    setTimeout(initNetlifyIdentity, 500);
+  }
 };
 
 // Sign in with Netlify Identity
@@ -43,7 +70,7 @@ export const signIn = () => {
     if (config.debug) console.log('Using Netlify Identity for sign in');
     
     // Open the Netlify Identity modal
-    window.netlifyIdentity.open();
+    window.netlifyIdentity.open('login');
   } else {
     console.error('Netlify Identity not available');
     throw new Error('Authentication service not available. Please try refreshing the page.');
@@ -91,6 +118,9 @@ export const onAuthStateChanged = (callback: (user: AuthUser | null) => void) =>
           provider: user.app_metadata?.provider || 'email'
         };
         
+        // Close the modal after login
+        window.netlifyIdentity.close();
+        
         callback(authUser);
       }
     });
@@ -106,5 +136,8 @@ export const onAuthStateChanged = (callback: (user: AuthUser | null) => void) =>
     if (currentUser) {
       callback(currentUser);
     }
+  } else {
+    // If netlifyIdentity is not available yet, wait and try again
+    setTimeout(() => onAuthStateChanged(callback), 500);
   }
 };
