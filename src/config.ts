@@ -1,21 +1,27 @@
 // Configuration for the application
 const config = {
-    // Get Google Client ID from environment variables or use a fallback for development
-    googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '1234567890-example.apps.googleusercontent.com',
-    
-    // API base URL - automatically detects if we're in production or development
-    apiBaseUrl: import.meta.env.PROD ? '' : 'http://localhost:3000',
-    
-    // Debug mode
-    debug: true,
-  };
+  // API base URL - automatically detects if we're in production or development
+  apiBaseUrl: import.meta.env.PROD ? '' : 'http://localhost:3000',
   
-  // Log configuration in debug mode
-  if (config.debug) {
-    console.log('App configuration:', {
-      ...config,
-      googleClientId: config.googleClientId ? 'Set' : 'Not set'
-    });
-  }
+  // Netlify Identity configuration
+  netlify: {
+    enabled: true,
+    // The site URL is used for redirects after authentication
+    siteUrl: import.meta.env.PROD 
+      ? 'https://gmaildrafter.comeriandigital.net' 
+      : 'http://localhost:5173'
+  },
   
-  export default config;
+  // Debug mode
+  debug: true,
+};
+
+// Log configuration in debug mode
+if (config.debug) {
+  console.log('App configuration:', {
+    ...config,
+    siteUrl: config.netlify.siteUrl
+  });
+}
+
+export default config;

@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 interface DraftEmail {
   to: string;
   subject: string;
@@ -27,27 +29,25 @@ export const createGmailDraft = async (accessToken: string, email: DraftEmail): 
       .replace(/=+$/, '');
 
     // Create the draft using Gmail API
-    const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/drafts', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
+    const response = await axios.post(
+      'https://gmail.googleapis.com/gmail/v1/users/me/drafts',
+      {
         message: {
           raw: encodedEmail
         }
-      })
-    });
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || 'Failed to create draft');
-    }
-
-    return await response.json();
-  } catch (error) {
+    return response.data;
+  } catch (error: any) {
     console.error('Error creating draft:', error);
-    throw new Error('Failed to create email draft. Please try again.');
+    const errorMessage = error.response?.data?.error?.message || 'Failed to create email draft';
+    throw new Error(errorMessage);
   }
 };

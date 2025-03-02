@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Mail, Sheet, Send, LogIn } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Sheet, Send, LogIn, LogOut } from 'lucide-react';
 import SheetDataTable from './components/SheetDataTable';
 import EmailTemplateEditor from './components/EmailTemplateEditor';
 import { findVariablesInTemplate } from './utils/templateUtils';
 import { createGmailDraft } from './services/gmailService';
 import { loadSheetData } from './services/sheetService';
+import { initAuth, signIn, signOut, onAuthStateChanged, AuthUser } from './services/authService';
 import config from './config';
 
 function App() {
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [accessToken, setAccessToken] = useState('');
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [sheetUrl, setSheetUrl] = useState('');
   const [sheetData, setSheetData] = useState<any[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
@@ -17,117 +17,34 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
 
-  // Initialize Google Identity Services
+  // Initialize authentication
   useEffect(() => {
-    const loadGoogleIdentity = () => {
-      if (config.debug) console.log('Loading Google Identity Services...');
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        if (config.debug) console.log('Google Identity Services loaded');
-        setGoogleScriptLoaded(true);
-      };
-      script.onerror = (e) => {
-        console.error('Failed to load Google Identity Services', e);
-        setError('Failed to load Google authentication. Please try refreshing the page.');
-      };
-      document.body.appendChild(script);
-    };
-
-    loadGoogleIdentity();
+    if (config.debug) console.log('Initializing authentication');
+    initAuth();
+    
+    // Listen for authentication state changes
+    onAuthStateChanged((authUser) => {
+      setUser(authUser);
+      if (authUser) {
+        setSuccess('Successfully signed in!');
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    });
   }, []);
 
-  const initializeGoogleIdentity = useCallback(() => {
-    if (!window.google) {
-      console.error('Google client not available');
-      setError('Google authentication is not available. Please try refreshing the page.');
-      return;
-    }
-    
-    if (!config.googleClientId) {
-      console.error('Google client ID not set');
-      setError('Google Client ID is missing. Please check your environment variables.');
-      return;
-    }
-
-    if (config.debug) console.log('Initializing Google Identity with client ID:', config.googleClientId);
-    
+  const handleSignIn = () => {
     try {
-      window.google.accounts.id.initialize({
-        client_id: config.googleClientId,
-        callback: handleCredentialResponse,
-      });
-
-      window.google.accounts.oauth2.initTokenClient({
-        client_id: config.googleClientId,
-        scope: 'https://www.googleapis.com/auth/gmail.compose',
-        callback: (tokenResponse: any) => {
-          if (config.debug) console.log('Token received');
-          setAccessToken(tokenResponse.access_token);
-          setIsSignedIn(true);
-        },
-      });
-      
-      if (config.debug) console.log('Google Identity initialized successfully');
-    } catch (err) {
-      console.error('Error initializing Google Identity:', err);
-      setError('Failed to initialize Google authentication. Please try again.');
-    }
-  }, []);
-
-  useEffect(() => {
-    if (googleScriptLoaded) {
-      // Add a small delay to ensure Google API is fully loaded
-      const timer = setTimeout(() => {
-        initializeGoogleIdentity();
-      }, 500);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [googleScriptLoaded, initializeGoogleIdentity]);
-
-  const handleCredentialResponse = (response: any) => {
-    if (config.debug) console.log('Credential response received');
-    // Request Gmail API access
-    if (window.google?.accounts.oauth2) {
-      window.google.accounts.oauth2.requestAccessToken({
-        client_id: config.googleClientId,
-        scope: 'https://www.googleapis.com/auth/gmail.compose',
-      });
-    } else {
-      console.error('OAuth2 not available after authentication');
-      setError('Authentication error. Please try again.');
+      signIn();
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in');
     }
   };
 
-  const handleSignIn = () => {
-    if (config.debug) console.log('Sign in button clicked');
-    
-    if (!window.google) {
-      console.error('Google API not loaded');
-      setError('Google authentication is not available. Please try refreshing the page.');
-      return;
-    }
-    
-    if (!window.google.accounts.oauth2) {
-      console.error('Google OAuth not available');
-      setError('Google authentication is not available. Please try refreshing the page.');
-      return;
-    }
-    
-    try {
-      window.google.accounts.oauth2.requestAccessToken({
-        client_id: config.googleClientId,
-        scope: 'https://www.googleapis.com/auth/gmail.compose',
-      });
-    } catch (err) {
-      console.error('Error requesting access token:', err);
-      setError('Failed to authenticate with Google. Please try again.');
-    }
+  const handleSignOut = () => {
+    signOut();
+    setSuccess('Successfully signed out');
+    setTimeout(() => setSuccess(''), 3000);
   };
 
   const handleLoadSheet = async () => {
@@ -163,6 +80,11 @@ function App() {
       return;
     }
 
+    if (!user?.accessToken) {
+      setError('Authentication required. Please sign in again.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     
@@ -179,7 +101,7 @@ function App() {
         });
         
         // Create draft
-        await createGmailDraft(accessToken, {
+        await createGmailDraft(user.accessToken, {
           to: contact.email || '',
           subject: 'Draft Email', // Could be customizable
           message: emailContent
@@ -208,15 +130,57 @@ function App() {
             <Mail className="h-6 w-6 text-blue-600" />
             <h1 className="text-xl font-bold text-gray-900">Gmail Drafter</h1>
           </div>
-          {isSignedIn && (
-            <span className="text-sm text-green-600 font-medium">Signed in with Google</span>
+          {user && (
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-green-600 font-medium">
+                Signed in as {user.email}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                <LogOut className="h-4 w-4 mr-1" />
+                Sign Out
+              </button>
+            </div>
           )}
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Notification messages */}
+        {error && (
+          <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {success && (
+          <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-green-700">{success}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Sign-in section */}
-        {!isSignedIn ? (
+        {!user ? (
           <div className="flex flex-col items-center justify-center py-12">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Gmail Drafter</h2>
@@ -293,37 +257,6 @@ function App() {
         ) : (
           /* Main app UI when signed in */
           <div>
-            {/* Notification messages */}
-            {error && (
-              <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-700">{error}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {success && (
-              <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-green-700">{success}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             {/* Google Sheet URL input */}
             <div className="bg-white shadow rounded-lg p-6 mb-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Load Google Sheet</h2>

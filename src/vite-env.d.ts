@@ -21,4 +21,11 @@ interface Window {
       };
     };
   };
+  netlifyIdentity: {
+    on: (event: string, callback: any) => void;
+    open: (tab?: string) => void;
+    close: () => void;
+    currentUser: () => any;
+    logout: () => void;
+  };
 }
