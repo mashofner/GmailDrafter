@@ -188,7 +188,7 @@ function App() {
         {!user ? (
           <div className="flex flex-col items-center justify-center py-12">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Gmail Drafter test</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Gmail Drafter</h2>
               <p className="text-gray-600">Sign in with Google to create email drafts from your Google Sheets data</p>
             </div>
             <button
