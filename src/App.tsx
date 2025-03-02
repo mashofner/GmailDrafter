@@ -5,6 +5,7 @@ import EmailTemplateEditor from './components/EmailTemplateEditor';
 import { findVariablesInTemplate } from './utils/templateUtils';
 import { createGmailDraft } from './services/gmailService';
 import { loadSheetData } from './services/sheetService';
+import config from './config';
 
 function App() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -16,51 +17,117 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
 
   // Initialize Google Identity Services
   useEffect(() => {
     const loadGoogleIdentity = () => {
+      if (config.debug) console.log('Loading Google Identity Services...');
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
-      script.onload = initializeGoogleIdentity;
+      script.onload = () => {
+        if (config.debug) console.log('Google Identity Services loaded');
+        setGoogleScriptLoaded(true);
+      };
+      script.onerror = (e) => {
+        console.error('Failed to load Google Identity Services', e);
+        setError('Failed to load Google authentication. Please try refreshing the page.');
+      };
       document.body.appendChild(script);
     };
 
     loadGoogleIdentity();
   }, []);
 
-  const initializeGoogleIdentity = () => {
-    window.google?.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-      callback: handleCredentialResponse,
-    });
+  const initializeGoogleIdentity = useCallback(() => {
+    if (!window.google) {
+      console.error('Google client not available');
+      setError('Google authentication is not available. Please try refreshing the page.');
+      return;
+    }
+    
+    if (!config.googleClientId) {
+      console.error('Google client ID not set');
+      setError('Google Client ID is missing. Please check your environment variables.');
+      return;
+    }
 
-    window.google?.accounts.oauth2.initTokenClient({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-      scope: 'https://www.googleapis.com/auth/gmail.compose',
-      callback: (tokenResponse: any) => {
-        setAccessToken(tokenResponse.access_token);
-        setIsSignedIn(true);
-      },
-    });
-  };
+    if (config.debug) console.log('Initializing Google Identity with client ID:', config.googleClientId);
+    
+    try {
+      window.google.accounts.id.initialize({
+        client_id: config.googleClientId,
+        callback: handleCredentialResponse,
+      });
+
+      window.google.accounts.oauth2.initTokenClient({
+        client_id: config.googleClientId,
+        scope: 'https://www.googleapis.com/auth/gmail.compose',
+        callback: (tokenResponse: any) => {
+          if (config.debug) console.log('Token received');
+          setAccessToken(tokenResponse.access_token);
+          setIsSignedIn(true);
+        },
+      });
+      
+      if (config.debug) console.log('Google Identity initialized successfully');
+    } catch (err) {
+      console.error('Error initializing Google Identity:', err);
+      setError('Failed to initialize Google authentication. Please try again.');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (googleScriptLoaded) {
+      // Add a small delay to ensure Google API is fully loaded
+      const timer = setTimeout(() => {
+        initializeGoogleIdentity();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [googleScriptLoaded, initializeGoogleIdentity]);
 
   const handleCredentialResponse = (response: any) => {
-    const credential = response.credential;
+    if (config.debug) console.log('Credential response received');
     // Request Gmail API access
-    window.google?.accounts.oauth2.requestAccessToken({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-      scope: 'https://www.googleapis.com/auth/gmail.compose',
-    });
+    if (window.google?.accounts.oauth2) {
+      window.google.accounts.oauth2.requestAccessToken({
+        client_id: config.googleClientId,
+        scope: 'https://www.googleapis.com/auth/gmail.compose',
+      });
+    } else {
+      console.error('OAuth2 not available after authentication');
+      setError('Authentication error. Please try again.');
+    }
   };
 
   const handleSignIn = () => {
-    window.google?.accounts.oauth2.requestAccessToken({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-      scope: 'https://www.googleapis.com/auth/gmail.compose',
-    });
+    if (config.debug) console.log('Sign in button clicked');
+    
+    if (!window.google) {
+      console.error('Google API not loaded');
+      setError('Google authentication is not available. Please try refreshing the page.');
+      return;
+    }
+    
+    if (!window.google.accounts.oauth2) {
+      console.error('Google OAuth not available');
+      setError('Google authentication is not available. Please try refreshing the page.');
+      return;
+    }
+    
+    try {
+      window.google.accounts.oauth2.requestAccessToken({
+        client_id: config.googleClientId,
+        scope: 'https://www.googleapis.com/auth/gmail.compose',
+      });
+    } catch (err) {
+      console.error('Error requesting access token:', err);
+      setError('Failed to authenticate with Google. Please try again.');
+    }
   };
 
   const handleLoadSheet = async () => {
