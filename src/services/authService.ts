@@ -8,152 +8,148 @@ export interface AuthUser {
   provider: string;
 }
 
-// Initialize Netlify Identity Widget
+// Google OAuth client ID
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+// In-memory token storage (no localStorage)
+let currentUser: AuthUser | null = null;
+
+// Initialize Google Auth
 export const initAuth = () => {
-  if (config.debug) console.log('Initializing auth service');
+  if (config.debug) console.log('Initializing Google auth service');
   
-  // Check if the script is already loaded
-  if (window.netlifyIdentity) {
-    if (config.debug) console.log('Netlify Identity Widget already loaded');
-    initNetlifyIdentity();
-    return;
-  }
-  
-  // Load the Netlify Identity Widget script if not already loaded
-  const existingScript = document.querySelector('script[src="https://identity.netlify.com/v1/netlify-identity-widget.js"]');
-  
-  if (!existingScript) {
-    if (config.debug) console.log('Loading Netlify Identity Widget script');
+  // Load the Google Identity Services script if not already loaded
+  if (!document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
     const script = document.createElement('script');
-    script.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
+    script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
+    script.defer = true;
     
     script.onload = () => {
-      if (config.debug) console.log('Netlify Identity Widget loaded');
-      initNetlifyIdentity();
+      if (config.debug) console.log('Google Identity Services script loaded');
+      initGoogleAuth();
     };
     
     script.onerror = (e) => {
-      console.error('Failed to load Netlify Identity Widget', e);
+      console.error('Failed to load Google Identity Services script', e);
     };
     
     document.body.appendChild(script);
   } else {
     // Script exists but might not be fully loaded yet
-    if (config.debug) console.log('Netlify Identity Widget script exists, waiting for load');
-    setTimeout(initNetlifyIdentity, 500);
+    if (window.google?.accounts) {
+      initGoogleAuth();
+    } else {
+      setTimeout(initGoogleAuth, 500);
+    }
   }
 };
 
-// Initialize Netlify Identity after script is loaded
-const initNetlifyIdentity = () => {
-  if (window.netlifyIdentity) {
+// Initialize Google Auth after script is loaded
+const initGoogleAuth = () => {
+  if (window.google?.accounts) {
     try {
-      // Set up event listeners
-      window.netlifyIdentity.on('init', (user) => {
-        if (config.debug) console.log('Netlify Identity initialized', user ? 'with user' : 'without user');
-      });
-      
-      window.netlifyIdentity.on('error', (err) => {
-        console.error('Netlify Identity error:', err);
-      });
-      
-      // Check if we need to initialize the widget
-      if (typeof window.netlifyIdentity.init === 'function') {
-        // Use the current site URL for identity
-        const siteUrl = window.location.origin;
-        if (config.debug) console.log('Initializing Netlify Identity with site URL:', siteUrl);
-        
-        window.netlifyIdentity.init({
-          APIUrl: `${siteUrl}/.netlify/identity`,
-          locale: 'en'
-        });
-      }
+      if (config.debug) console.log('Google Identity Services initialized');
     } catch (e) {
-      console.error('Error setting up Netlify Identity:', e);
+      console.error('Error setting up Google Auth:', e);
     }
   } else {
-    if (config.debug) console.log('Netlify Identity not available yet, retrying...');
-    setTimeout(initNetlifyIdentity, 500);
+    if (config.debug) console.log('Google Identity Services not available yet, retrying...');
+    setTimeout(initGoogleAuth, 500);
   }
 };
 
-// Sign in with Netlify Identity
+// Sign in with Google
 export const signIn = () => {
-  if (config.debug) console.log('Sign in requested');
+  if (config.debug) console.log('Sign in with Google requested');
   
-  if (window.netlifyIdentity) {
-    if (config.debug) console.log('Using Netlify Identity for sign in');
-    
-    // Open the Netlify Identity modal
-    window.netlifyIdentity.open('login');
-  } else {
-    console.error('Netlify Identity not available');
+  if (!window.google?.accounts) {
+    console.error('Google Identity Services not available');
     throw new Error('Authentication service not available. Please try refreshing the page.');
   }
+  
+  if (!GOOGLE_CLIENT_ID) {
+    console.error('Google Client ID not configured');
+    throw new Error('Google authentication is not properly configured. Please check your environment variables.');
+  }
+  
+  const tokenClient = window.google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+    callback: async (tokenResponse: any) => {
+      if (tokenResponse.error) {
+        console.error('Error during Google authentication:', tokenResponse);
+        return;
+      }
+      
+      try {
+        // Get user info with the access token
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: {
+            'Authorization': `Bearer ${tokenResponse.access_token}`
+          }
+        });
+        
+        const userInfo = await userInfoResponse.json();
+        
+        // Create auth user object and store in memory only (not localStorage)
+        currentUser = {
+          email: userInfo.email,
+          name: userInfo.name,
+          accessToken: tokenResponse.access_token,
+          provider: 'google'
+        };
+        
+        // Trigger auth state change
+        const authStateChangeEvent = new CustomEvent('authStateChanged', { detail: currentUser });
+        window.dispatchEvent(authStateChangeEvent);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
+  });
+  
+  // Request the token with consent screen
+  tokenClient.requestAccessToken({ prompt: 'consent' });
 };
 
 // Sign out
 export const signOut = () => {
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.logout();
+  // Clear in-memory user data
+  const token = currentUser?.accessToken;
+  currentUser = null;
+  
+  // Revoke Google token if available
+  if (token && window.google?.accounts) {
+    window.google.accounts.oauth2.revoke(token, () => {
+      if (config.debug) console.log('Token revoked');
+    });
   }
+  
+  // Trigger auth state change
+  const authStateChangeEvent = new CustomEvent('authStateChanged', { detail: null });
+  window.dispatchEvent(authStateChangeEvent);
 };
 
 // Get current user
 export const getCurrentUser = (): AuthUser | null => {
-  if (window.netlifyIdentity) {
-    const user = window.netlifyIdentity.currentUser();
-    
-    if (user) {
-      // Extract the token from the Netlify Identity user
-      return {
-        email: user.email,
-        name: user.user_metadata?.full_name,
-        accessToken: user.token?.access_token || '',
-        provider: user.app_metadata?.provider || 'email'
-      };
-    }
-  }
-  
-  return null;
+  return currentUser;
 };
 
 // Listen for authentication events
 export const onAuthStateChanged = (callback: (user: AuthUser | null) => void) => {
-  if (window.netlifyIdentity) {
-    // Listen for login events
-    window.netlifyIdentity.on('login', (user) => {
-      if (config.debug) console.log('User logged in', user);
-      
-      if (user) {
-        const authUser: AuthUser = {
-          email: user.email,
-          name: user.user_metadata?.full_name,
-          accessToken: user.token?.access_token || '',
-          provider: user.app_metadata?.provider || 'email'
-        };
-        
-        // Close the modal after login
-        window.netlifyIdentity.close();
-        
-        callback(authUser);
-      }
-    });
-    
-    // Listen for logout events
-    window.netlifyIdentity.on('logout', () => {
-      if (config.debug) console.log('User logged out');
-      callback(null);
-    });
-    
-    // Initial check
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-      callback(currentUser);
-    }
-  } else {
-    // If netlifyIdentity is not available yet, wait and try again
-    setTimeout(() => onAuthStateChanged(callback), 500);
-  }
+  // Check initial state
+  callback(currentUser);
+  
+  // Listen for auth state changes
+  const handleAuthStateChange = (event: CustomEvent<AuthUser | null>) => {
+    callback(event.detail);
+  };
+  
+  window.addEventListener('authStateChanged', handleAuthStateChange as EventListener);
+  
+  // Return a function to remove the listener
+  return () => {
+    window.removeEventListener('authStateChanged', handleAuthStateChange as EventListener);
+  };
 };

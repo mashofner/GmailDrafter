@@ -4,10 +4,10 @@ const config = {
   apiBaseUrl: import.meta.env.PROD ? '' : 'http://localhost:3000',
   
   // Debug mode - set to false in production
-  debug: import.meta.env.PROD ? false : true,
+  debug: import.meta.env.DEV ? true : false,
   
-  // Netlify site URL - used for Identity
-  netlifyUrl: import.meta.env.PROD ? window.location.origin : 'http://localhost:8888',
+  // Site URL
+  siteUrl: window.location.origin,
 };
 
 // Log configuration in debug mode

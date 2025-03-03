@@ -15,21 +15,6 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
-# Explicitly handle identity endpoint
-[[redirects]]
-  from = "/.netlify/identity/*"
-  to = "/.netlify/identity/:splat"
-  status = 200
-  force = true
-
-# Enable Netlify Identity
-[template.environment]
-  NETLIFY_IDENTITY_ENABLED = "true"
-
-# Make sure Netlify Identity is enabled for the site
-[build.environment]
-  NETLIFY_IDENTITY_ENABLED = "true"
-
 [dev]
   command = "npm run dev"
   port = 8888

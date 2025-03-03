@@ -16,8 +16,8 @@ interface Window {
         renderButton: (element: HTMLElement, config: any) => void;
       };
       oauth2: {
-        initTokenClient: (config: any) => void;
-        requestAccessToken: (config: any) => void;
+        initTokenClient: (config: any) => any;
+        revoke: (token: string, callback: () => void) => void;
       };
     };
   };

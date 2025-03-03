@@ -34,6 +34,11 @@ app.post('/api/load-sheet', async (req, res) => {
       return res.status(400).json({ error: 'Invalid Google Sheet URL' });
     }
 
+    // Check if service account key is available
+    if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+      return res.status(500).json({ error: 'Google service account key is not configured' });
+    }
+
     // Initialize Google Sheets API with service account
     const auth = new GoogleAuth({
       credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY),
@@ -69,6 +74,11 @@ app.post('/api/load-sheet', async (req, res) => {
     console.error('Error loading sheet:', error);
     res.status(500).json({ error: 'Failed to load Google Sheet data' });
   }
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Serve the React app for any other routes

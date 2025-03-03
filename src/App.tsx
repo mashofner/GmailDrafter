@@ -27,13 +27,18 @@ function App() {
       initAuth();
       
       // Listen for authentication state changes
-      onAuthStateChanged((authUser) => {
+      const unsubscribe = onAuthStateChanged((authUser) => {
         setUser(authUser);
         if (authUser) {
           setSuccess('Successfully signed in!');
           setTimeout(() => setSuccess(''), 3000);
         }
       });
+      
+      // Cleanup function
+      return () => {
+        if (typeof unsubscribe === 'function') unsubscribe();
+      };
     }, 100);
   }, []);
 
