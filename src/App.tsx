@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Mail, Sheet, Send, LogIn, LogOut } from 'lucide-react';
+import { Mail, Sheet, Send, LogIn, LogOut, ChevronRight, HelpCircle, ExternalLink } from 'lucide-react';
 import SheetDataTable from './components/SheetDataTable';
 import EmailTemplateEditor from './components/EmailTemplateEditor';
 import { findVariablesInTemplate } from './utils/templateUtils';
@@ -8,6 +8,9 @@ import { createGmailDraft } from './services/gmailService';
 import { loadSheetData } from './services/sheetService';
 import { initAuth, signIn, signOut, onAuthStateChanged, AuthUser } from './services/authService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import NeuralNetwork from './components/NeuralNetwork';
+import Footer from './components/Footer';
+import UserGuide from './components/UserGuide';
 import config from './config';
 
 function HomePage() {
@@ -19,6 +22,7 @@ function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showGuide, setShowGuide] = useState(false);
 
   // Initialize authentication
   useEffect(() => {
@@ -135,34 +139,64 @@ function HomePage() {
   const variables = findVariablesInTemplate(emailTemplate);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Mail className="h-6 w-6 text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-900">Gmail Drafter</h1>
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-800 relative overflow-hidden">
+      <div className="fixed inset-0 z-0 bg-gradient-to-tr from-blue-500/5 via-transparent to-purple-500/5">
+        <NeuralNetwork />
+      </div>
+      
+      <header className="bg-transparent backdrop-blur-sm relative z-10">
+        <div className="max-w-7xl mx-auto px-6 py-6 sm:px-8 lg:px-10 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <Mail className="h-7 w-7 text-comerian-accent" />
+            <h1 className="text-xl font-bold text-white">Comerian - Gmail Drafter</h1>
           </div>
-          {user && (
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-green-600 font-medium">
-                Signed in as {user.email}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <LogOut className="h-4 w-4 mr-1" />
-                Sign Out
-              </button>
-            </div>
-          )}
+          <div className="flex items-center space-x-6">
+            {/* Comerian Digital link - now more distinct */}
+            <a 
+              href="https://comeriandigital.net" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-md border border-comerian-teal/30 bg-comerian-teal/10 text-comerian-teal hover:bg-comerian-teal/20 transition-colors flex items-center"
+            >
+              <span>Comerian Digital</span>
+              <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+            </a>
+            
+            {/* Help button - now more distinct */}
+            <button
+              onClick={() => setShowGuide(!showGuide)}
+              className="px-3 py-1.5 rounded-md border border-comerian-accent/30 bg-comerian-accent/10 text-comerian-accent hover:bg-comerian-accent/20 transition-colors flex items-center"
+              aria-label="Show user guide"
+            >
+              <HelpCircle className="h-4 w-4 mr-1.5" />
+              <span>Help</span>
+            </button>
+            
+            {user && (
+              <>
+                <span className="text-sm font-medium text-comerian-accent">
+                  Signed in as {user.email}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="inline-flex items-center px-3 py-1.5 border border-comerian-teal text-xs font-medium rounded-md text-white bg-transparent hover:bg-comerian-teal/20 transition-colors"
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  Sign Out
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+        {/* User Guide */}
+        {showGuide && <UserGuide onClose={() => setShowGuide(false)} />}
+        
         {/* Notification messages */}
         {error && (
-          <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
+          <div className="mb-6 bg-red-900/30 border-l-4 border-red-500 p-4 rounded shadow-sm">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -170,186 +204,145 @@ function HomePage() {
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
+                <p className="text-sm text-red-200">{error}</p>
               </div>
             </div>
           </div>
         )}
         
         {success && (
-          <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4">
+          <div className="mb-6 bg-comerian-teal/10 border-l-4 border-comerian-teal p-4 rounded shadow-sm">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-5 w-5 text-comerian-teal" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-green-700">{success}</p>
+                <p className="text-sm text-comerian-accent">{success}</p>
               </div>
             </div>
           </div>
         )}
         
-        {/* Sign-in section */}
         {!user ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Gmail Drafter</h2>
-              <p className="text-gray-600">Sign in with Google to create email drafts from your Google Sheets data</p>
-            </div>
-            <button
-              onClick={handleSignIn}
-              className="flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              <LogIn className="h-5 w-5 mr-2" />
-              Sign in with Google
-            </button>
-            
-            <div className="mt-2">
-              <Link to="/privacy" className="text-sm text-blue-600 hover:text-blue-800">
-                Privacy Policy
-              </Link>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold mb-4 text-white">
+                Welcome to Gmail Drafter
+              </h2>
+              <p className="text-comerian-gray text-lg max-w-2xl mx-auto">
+                Sign in with Google to create email drafts from your Google Sheets data
+              </p>
             </div>
             
-            {/* Grayed out UI preview */}
-            <div className="mt-12 w-full max-w-4xl opacity-50 pointer-events-none">
-              <div className="bg-white shadow rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Load Google Sheet</h3>
-                <div className="flex space-x-4">
-                  <input
-                    type="text"
-                    placeholder="Paste Google Sheet URL here"
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md"
-                    disabled
-                  />
-                  <button
-                    className="px-4 py-2 bg-green-600 text-white font-medium rounded-md"
-                    disabled
-                  >
-                    <Sheet className="h-4 w-4 inline mr-2" />
-                    Load Sheet
-                  </button>
-                </div>
-              </div>
+            <div className="flex flex-col items-center">
+              <button
+                onClick={handleSignIn}
+                className="flex items-center px-8 py-3 bg-[#3b82f6] text-white font-medium rounded-md hover:shadow-lg transition-shadow btn-hover-effect"
+              >
+                <LogIn className="h-5 w-5 mr-2" />
+                Sign in with Google
+              </button>
               
-              <div className="bg-white shadow rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Sheet Data Preview</h3>
-                <div className="border border-gray-200 rounded-md overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">John Doe</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">john@example.com</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Acme Inc</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              
-              <div className="bg-white shadow rounded-lg p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Email Template</h3>
-                <textarea
-                  placeholder="Hi {name}, ..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md h-40"
-                  disabled
-                ></textarea>
-                <button
-                  className="mt-4 px-6 py-2 bg-purple-600 text-white font-medium rounded-md"
-                  disabled
-                >
-                  <Send className="h-4 w-4 inline mr-2" />
-                  Create Drafts
-                </button>
+              <div className="mt-4 text-center">
+                <Link to="/privacy" className="text-sm text-comerian-teal hover:text-comerian-accent transition-colors">
+                  Privacy Policy
+                </Link>
               </div>
             </div>
           </div>
-        ) : (
-          /* Main app UI when signed in */
-          <div>
-            {/* Google Sheet URL input */}
-            <div className="bg-white shadow rounded-lg p-6 mb-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Load Google Sheet</h2>
-              <div className="flex space-x-4">
-                <input
-                  type="text"
-                  value={sheetUrl}
-                  onChange={(e) => setSheetUrl(e.target.value)}
-                  placeholder="Paste Google Sheet URL here"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-                <button
-                  onClick={handleLoadSheet}
-                  disabled={isLoading || !sheetUrl}
-                  className={`px-4 py-2 font-medium rounded-md flex items-center ${
-                    isLoading || !sheetUrl
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-green-600 text-white hover:bg-green-700'
-                  }`}
-                >
-                  <Sheet className="h-4 w-4 mr-2" />
-                  {isLoading ? 'Loading...' : 'Load Sheet'}
-                </button>
-              </div>
-            </div>
-            
-            {/* Sheet data table */}
-            {headers.length > 0 && (
-              <div className="bg-white shadow rounded-lg p-6 mb-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Sheet Data Preview</h2>
-                <SheetDataTable headers={headers} data={sheetData} />
-              </div>
-            )}
-            
-            {/* Email template editor */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Email Template</h2>
-              <p className="text-sm text-gray-500 mb-2">
-                Use variables like {'{name}'} to personalize your emails. Available variables: {' '}
-                {headers.map(header => `{${header}}`).join(', ')}
-              </p>
-              <EmailTemplateEditor
-                value={emailTemplate}
-                onChange={setEmailTemplate}
-                variables={variables}
-                availableVariables={headers}
+        ) : null}
+        
+        {/* Main app UI - shown to all users, but disabled for non-authenticated users */}
+        <div className={`w-full max-w-4xl mx-auto ${!user ? 'opacity-50 pointer-events-none mt-12' : ''}`}>
+          {/* Google Sheet URL input */}
+          <div className="card mb-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Load Google Sheet</h3>
+            <div className="flex space-x-4">
+              <input
+                type="text"
+                value={sheetUrl}
+                onChange={(e) => setSheetUrl(e.target.value)}
+                placeholder="Paste Google Sheet URL here"
+                className="flex-1 px-4 py-2 bg-comerian-dark border border-card-border rounded-md focus:ring-comerian-teal focus:border-comerian-teal text-white"
+                disabled={!user}
               />
               <button
-                onClick={handleCreateDrafts}
-                disabled={isLoading || !emailTemplate || sheetData.length === 0}
-                className={`mt-4 px-6 py-2 font-medium rounded-md flex items-center ${
-                  isLoading || !emailTemplate || sheetData.length === 0
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                onClick={handleLoadSheet}
+                disabled={isLoading || !sheetUrl || !user}
+                className={`px-4 py-2 font-medium rounded-md flex items-center ${
+                  isLoading || !sheetUrl || !user
+                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                    : 'bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors btn-hover-effect'
                 }`}
               >
-                <Send className="h-4 w-4 mr-2" />
-                {isLoading ? 'Creating...' : 'Create Drafts'}
+                <Sheet className="h-4 w-4 mr-2" />
+                {isLoading ? 'Loading...' : 'Load Sheet'}
               </button>
             </div>
           </div>
-        )}
+          
+          {/* Sheet data table */}
+          <div className="card mb-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Sheet Data Preview</h3>
+            {headers.length > 0 ? (
+              <SheetDataTable headers={headers} data={sheetData} />
+            ) : (
+              <div className="border border-card-border rounded-md overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-700">
+                  <thead className="bg-comerian-dark">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider">Company</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-card-bg divide-y divide-gray-700">
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-comerian-gray">John Doe</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-comerian-gray">john@example.com</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-comerian-gray">Acme Inc</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          
+          {/* Email template editor */}
+          <div className="card">
+            <h3 className="text-lg font-semibold text-white mb-4">Email Template</h3>
+            {user && headers.length > 0 && (
+              <p className="text-sm text-comerian-gray mb-2">
+                Use variables like {'{name}'} to personalize your emails. Available variables: {' '}
+                {headers.map(header => `{${header}}`).join(', ')}
+              </p>
+            )}
+            <EmailTemplateEditor
+              value={emailTemplate}
+              onChange={setEmailTemplate}
+              variables={variables}
+              availableVariables={headers.length > 0 ? headers : ['name', 'email', 'company']}
+              disabled={!user}
+            />
+            <button
+              onClick={handleCreateDrafts}
+              disabled={isLoading || !emailTemplate || sheetData.length === 0 || !user}
+              className={`mt-4 px-6 py-2 font-medium rounded-md flex items-center ${
+                isLoading || !emailTemplate || sheetData.length === 0 || !user
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-shadow btn-hover-effect'
+              }`}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {isLoading ? 'Creating...' : 'Create Drafts'}
+            </button>
+          </div>
+        </div>
       </main>
       
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <p className="text-sm text-gray-500 text-center">
-            Gmail Drafter © {new Date().getFullYear()} | Create email drafts from Google Sheets
-            {' | '}
-            <Link to="/privacy" className="text-blue-600 hover:text-blue-800">
-              Privacy Policy
-            </Link>
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
