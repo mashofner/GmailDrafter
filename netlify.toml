@@ -17,13 +17,17 @@
 
 # Explicitly handle identity endpoint
 [[redirects]]
-  from = "/.netlify/identity"
-  to = "/.netlify/identity"
+  from = "/.netlify/identity/*"
+  to = "/.netlify/identity/:splat"
   status = 200
   force = true
 
 # Enable Netlify Identity
 [template.environment]
+  NETLIFY_IDENTITY_ENABLED = "true"
+
+# Make sure Netlify Identity is enabled for the site
+[build.environment]
   NETLIFY_IDENTITY_ENABLED = "true"
 
 [dev]

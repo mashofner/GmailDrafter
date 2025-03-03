@@ -48,7 +48,6 @@ export const initAuth = () => {
 // Initialize Netlify Identity after script is loaded
 const initNetlifyIdentity = () => {
   if (window.netlifyIdentity) {
-    // Configure the widget
     try {
       // Set up event listeners
       window.netlifyIdentity.on('init', (user) => {
@@ -61,9 +60,12 @@ const initNetlifyIdentity = () => {
       
       // Check if we need to initialize the widget
       if (typeof window.netlifyIdentity.init === 'function') {
-        // Initialize with the site URL
+        // Use the current site URL for identity
+        const siteUrl = window.location.origin;
+        if (config.debug) console.log('Initializing Netlify Identity with site URL:', siteUrl);
+        
         window.netlifyIdentity.init({
-          APIUrl: `${window.location.origin}/.netlify/identity`,
+          APIUrl: `${siteUrl}/.netlify/identity`,
           locale: 'en'
         });
       }
