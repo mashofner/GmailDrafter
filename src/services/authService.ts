@@ -48,37 +48,28 @@ export const initAuth = () => {
 // Initialize Netlify Identity after script is loaded
 const initNetlifyIdentity = () => {
   if (window.netlifyIdentity) {
-    // Configure the widget with explicit API URL
-    const apiUrl = `${window.location.origin}/.netlify/identity`;
-    console.log('Setting Netlify Identity API URL:', apiUrl);
-    
-    // Set the API URL explicitly
+    // Configure the widget
     try {
-      // @ts-ignore - Accessing internal property
-      window.netlifyIdentity.gotrue = window.netlifyIdentity.gotrue || {};
-      // @ts-ignore - Accessing internal property
-      window.netlifyIdentity.gotrue.api = window.netlifyIdentity.gotrue.api || {};
-      // @ts-ignore - Accessing internal property
-      window.netlifyIdentity.gotrue.api.apiURL = apiUrl;
+      // Set up event listeners
+      window.netlifyIdentity.on('init', (user) => {
+        if (config.debug) console.log('Netlify Identity initialized', user ? 'with user' : 'without user');
+      });
       
-      // Force re-init
-      // @ts-ignore - Accessing internal method
-      if (typeof window.netlifyIdentity._init === 'function') {
-        // @ts-ignore - Accessing internal method
-        window.netlifyIdentity._init({});
+      window.netlifyIdentity.on('error', (err) => {
+        console.error('Netlify Identity error:', err);
+      });
+      
+      // Check if we need to initialize the widget
+      if (typeof window.netlifyIdentity.init === 'function') {
+        // Initialize with the site URL
+        window.netlifyIdentity.init({
+          APIUrl: `${window.location.origin}/.netlify/identity`,
+          locale: 'en'
+        });
       }
     } catch (e) {
-      console.error('Error configuring Netlify Identity:', e);
+      console.error('Error setting up Netlify Identity:', e);
     }
-    
-    // Configure the widget
-    window.netlifyIdentity.on('init', (user) => {
-      if (config.debug) console.log('Netlify Identity initialized', user ? 'with user' : 'without user');
-    });
-    
-    window.netlifyIdentity.on('error', (err) => {
-      console.error('Netlify Identity error:', err);
-    });
   } else {
     if (config.debug) console.log('Netlify Identity not available yet, retrying...');
     setTimeout(initNetlifyIdentity, 500);
