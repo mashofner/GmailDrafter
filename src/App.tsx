@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Mail, Sheet, Send, LogIn, LogOut } from 'lucide-react';
 import SheetDataTable from './components/SheetDataTable';
 import EmailTemplateEditor from './components/EmailTemplateEditor';
@@ -6,9 +7,10 @@ import { findVariablesInTemplate } from './utils/templateUtils';
 import { createGmailDraft } from './services/gmailService';
 import { loadSheetData } from './services/sheetService';
 import { initAuth, signIn, signOut, onAuthStateChanged, AuthUser } from './services/authService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import config from './config';
 
-function App() {
+function HomePage() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [sheetUrl, setSheetUrl] = useState('');
   const [sheetData, setSheetData] = useState<any[]>([]);
@@ -204,6 +206,12 @@ function App() {
               Sign in with Google
             </button>
             
+            <div className="mt-2">
+              <Link to="/privacy" className="text-sm text-blue-600 hover:text-blue-800">
+                Privacy Policy
+              </Link>
+            </div>
+            
             {/* Grayed out UI preview */}
             <div className="mt-12 w-full max-w-4xl opacity-50 pointer-events-none">
               <div className="bg-white shadow rounded-lg p-6 mb-6">
@@ -335,10 +343,25 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <p className="text-sm text-gray-500 text-center">
             Gmail Drafter © {new Date().getFullYear()} | Create email drafts from Google Sheets
+            {' | '}
+            <Link to="/privacy" className="text-blue-600 hover:text-blue-800">
+              Privacy Policy
+            </Link>
           </p>
         </div>
       </footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+      </Routes>
+    </Router>
   );
 }
 
