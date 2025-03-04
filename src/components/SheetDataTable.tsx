@@ -48,49 +48,52 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
   }
   
   return (
-    <div className="overflow-x-auto">
-      <div className="align-middle inline-block min-w-full">
-        <div className="shadow-sm overflow-hidden border border-card-border rounded-lg">
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead className="bg-comerian-dark">
-              <tr>
-                {headers.map((header, index) => (
-                  <th
-                    key={index}
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider"
-                  >
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-card-bg divide-y divide-gray-700">
-              {currentRows.length > 0 ? (
-                currentRows.map((row, rowIndex) => (
-                  <tr key={rowIndex} className="hover:bg-comerian-dark/50 transition-colors">
-                    {headers.map((header, colIndex) => (
-                      <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4 whitespace-nowrap text-sm text-comerian-gray">
-                        {row[header] || ''}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
+    <div className="flex flex-col h-full">
+      {/* Table container with horizontal scroll */}
+      <div className="overflow-x-auto flex-grow mb-4">
+        <div className="align-middle inline-block min-w-full">
+          <div className="shadow-sm overflow-hidden border border-card-border rounded-lg">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-comerian-dark">
                 <tr>
-                  <td colSpan={headers.length} className="px-6 py-4 text-center text-sm text-comerian-gray">
-                    No data available
-                  </td>
+                  {headers.map((header, index) => (
+                    <th
+                      key={index}
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider"
+                    >
+                      {header}
+                    </th>
+                  ))}
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-card-bg divide-y divide-gray-700">
+                {currentRows.length > 0 ? (
+                  currentRows.map((row, rowIndex) => (
+                    <tr key={rowIndex} className="hover:bg-comerian-dark/50 transition-colors">
+                      {headers.map((header, colIndex) => (
+                        <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4 whitespace-nowrap text-sm text-comerian-gray">
+                          {row[header] || ''}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={headers.length} className="px-6 py-4 text-center text-sm text-comerian-gray">
+                      No data available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       
-      {/* Pagination controls */}
+      {/* Pagination controls - now in a fixed position at the bottom with spacing */}
       {data.length > 0 && (
-        <div className="mt-4 flex items-center justify-between">
+        <div className="pt-4 pb-2 border-t border-gray-700 bg-card-bg sticky left-0 right-0 bottom-0 flex items-center justify-between">
           <div className="flex items-center text-sm text-comerian-gray">
             <span>
               Showing {indexOfFirstRow + 1}-{Math.min(indexOfLastRow, data.length)} of {data.length} {data.length === 1 ? 'row' : 'rows'}
