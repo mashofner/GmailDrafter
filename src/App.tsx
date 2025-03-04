@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Mail, Sheet, Send, LogIn, LogOut, ChevronRight, HelpCircle, ExternalLink } from 'lucide-react';
+import { Mail, Sheet, Send, LogIn, LogOut, ChevronRight, HelpCircle, ExternalLink, CheckCircle } from 'lucide-react';
 import SheetDataTable from './components/SheetDataTable';
 import EmailTemplateEditor from './components/EmailTemplateEditor';
 import { findVariablesInTemplate } from './utils/templateUtils';
@@ -12,6 +12,7 @@ import NeuralNetwork from './components/NeuralNetwork';
 import Footer from './components/Footer';
 import UserGuide from './components/UserGuide';
 import config from './config';
+import Notification from './components/Notification';
 
 function HomePage() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -23,6 +24,12 @@ function HomePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showGuide, setShowGuide] = useState(false);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    message: string;
+    type: 'success' | 'error';
+    count?: number;
+  }>({ show: false, message: '', type: 'success' });
 
   // Initialize authentication
   useEffect(() => {
@@ -85,6 +92,14 @@ function HomePage() {
     }
   };
 
+  // Clear sheet data function
+  const clearSheetData = () => {
+    setSheetData([]);
+    setHeaders([]);
+    setSheetUrl('');
+    setEmailTemplate('');
+  };
+
   const handleCreateDrafts = async () => {
     if (!emailTemplate) {
       setError('Please enter an email template');
@@ -127,9 +142,31 @@ function HomePage() {
       }
       
       setSuccess(`${successCount} drafts created successfully!`);
+      
+      // Show notification
+      setNotification({
+        show: true,
+        message: `${successCount} Gmail drafts created successfully!`,
+        type: 'success',
+        count: successCount
+      });
+      
+      // Clear sheet data after successful draft creation
+      setTimeout(() => {
+        clearSheetData();
+      }, 1000);
+      
+      // Hide success message after 5 seconds
       setTimeout(() => setSuccess(''), 5000);
     } catch (err: any) {
       setError(err.message || 'Failed to create drafts');
+      
+      // Show error notification
+      setNotification({
+        show: true,
+        message: err.message || 'Failed to create drafts',
+        type: 'error'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -193,6 +230,16 @@ function HomePage() {
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         {/* User Guide */}
         {showGuide && <UserGuide onClose={() => setShowGuide(false)} />}
+        
+        {/* Gmail Draft Creation Notification */}
+        {notification.show && (
+          <Notification 
+            message={notification.message}
+            type={notification.type}
+            count={notification.count}
+            onClose={() => setNotification({ ...notification, show: false })}
+          />
+        )}
         
         {/* Notification messages */}
         {error && (
