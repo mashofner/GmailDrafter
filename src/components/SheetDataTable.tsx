@@ -55,7 +55,11 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-comerian-teal mb-4"></div>
+        <div className="w-full max-w-md mx-auto mb-4">
+          <div className="h-2 bg-comerian-dark rounded-full overflow-hidden">
+            <div className="h-full bg-comerian-teal animate-progress-indeterminate"></div>
+          </div>
+        </div>
         <p className="text-comerian-gray text-lg font-medium">Loading Leads...</p>
       </div>
     );

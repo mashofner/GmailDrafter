@@ -11,6 +11,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import NeuralNetwork from './components/NeuralNetwork';
 import Footer from './components/Footer';
 import UserGuide from './components/UserGuide';
+import ProgressBar from './components/ProgressBar';
 import config from './config';
 import Notification from './components/Notification';
 
@@ -24,6 +25,7 @@ function HomePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showGuide, setShowGuide] = useState(false);
+  const [loadingOperation, setLoadingOperation] = useState<string | null>(null);
   const [notification, setNotification] = useState<{
     show: boolean;
     message: string;
@@ -57,10 +59,14 @@ function HomePage() {
 
   const handleSignIn = () => {
     setError(''); // Clear any previous errors
+    setLoadingOperation('auth');
     try {
       signIn();
     } catch (err: any) {
       setError(err.message || 'Failed to sign in');
+    } finally {
+      // Auth process is handled by Google, so we'll set loading to false after a short delay
+      setTimeout(() => setLoadingOperation(null), 1000);
     }
   };
 
@@ -77,6 +83,7 @@ function HomePage() {
     }
 
     setIsLoading(true);
+    setLoadingOperation('sheet');
     setError('');
     
     try {
@@ -89,6 +96,7 @@ function HomePage() {
       setError(err.message || 'Failed to load sheet data');
     } finally {
       setIsLoading(false);
+      setLoadingOperation(null);
     }
   };
 
@@ -128,13 +136,16 @@ function HomePage() {
     }
 
     setIsLoading(true);
+    setLoadingOperation('drafts');
     setError('');
     
     try {
       let successCount = 0;
       let missingEmailCount = 0;
+      const totalDrafts = sheetData.length;
       
-      for (const contact of sheetData) {
+      for (let i = 0; i < sheetData.length; i++) {
+        const contact = sheetData[i];
         let emailContent = emailTemplate;
         
         // Find the email field (could be named "email", "Email", "EMAIL", etc.)
@@ -198,6 +209,7 @@ function HomePage() {
       });
     } finally {
       setIsLoading(false);
+      setLoadingOperation(null);
     }
   };
 
@@ -206,6 +218,13 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-800 relative overflow-hidden">
+      {/* Progress Bar */}
+      <ProgressBar 
+        isLoading={!!loadingOperation} 
+        duration={loadingOperation === 'drafts' ? 5000 : 3000}
+        indeterminate={loadingOperation === 'auth'}
+      />
+      
       <div className="fixed inset-0 z-0 bg-gradient-to-tr from-blue-500/5 via-transparent to-purple-500/5">
         <NeuralNetwork />
       </div>
@@ -315,10 +334,26 @@ function HomePage() {
             <div className="flex flex-col items-center">
               <button
                 onClick={handleSignIn}
-                className="flex items-center px-8 py-3 bg-[#3b82f6] text-white font-medium rounded-md hover:shadow-lg transition-shadow btn-hover-effect"
+                disabled={loadingOperation === 'auth'}
+                className="flex items-center px-8 py-3 bg-[#3b82f6] text-white font-medium rounded-md hover:shadow-lg transition-shadow btn-hover-effect relative"
               >
-                <LogIn className="h-5 w-5 mr-2" />
-                Sign in with Google
+                {loadingOperation === 'auth' ? (
+                  <>
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#3b82f6] rounded-md">
+                      <div className="animate-pulse flex space-x-1">
+                        <div className="h-2 w-2 bg-white rounded-full"></div>
+                        <div className="h-2 w-2 bg-white rounded-full"></div>
+                        <div className="h-2 w-2 bg-white rounded-full"></div>
+                      </div>
+                    </div>
+                    <span className="opacity-0">Sign in with Google</span>
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-5 w-5 mr-2" />
+                    Sign in with Google
+                  </>
+                )}
               </button>
               
               <div className="mt-4 text-center">
@@ -353,7 +388,7 @@ function HomePage() {
                     : 'bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors btn-hover-effect'
                 }`}
               >
-                {isLoading ? (
+                {loadingOperation === 'sheet' ? (
                   <>
                     <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-white rounded-full"></div>
                     Loading...
@@ -383,7 +418,7 @@ function HomePage() {
             <SheetDataTable 
               headers={headers} 
               data={sheetData} 
-              isLoading={isLoading}
+              isLoading={loadingOperation === 'sheet'}
             />
           </div>
           
@@ -416,7 +451,7 @@ function HomePage() {
                   : 'bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-shadow btn-hover-effect'
               }`}
             >
-              {isLoading ? (
+              {loadingOperation === 'drafts' ? (
                 <>
                   <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-white rounded-full"></div>
                   Creating...
