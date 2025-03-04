@@ -42,6 +42,10 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
         ))}
       </div>
       
+      <p className="text-sm text-comerian-gray mb-2">
+        Click the buttons above to insert variables into your template. Each variable will be replaced with data from your sheet.
+      </p>
+      
       <textarea
         id="email-template"
         value={value}

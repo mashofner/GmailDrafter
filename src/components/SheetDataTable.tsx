@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 
 interface SheetDataTableProps {
   headers: string[];
@@ -47,11 +47,9 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
     }));
   };
   
-  // Get column class based on expansion state
-  const getColumnClass = (header: string) => {
-    return expandedColumns[header] 
-      ? "max-w-none" 
-      : "max-w-[150px] truncate";
+  // Check if text is likely to be truncated
+  const isTruncated = (text: string) => {
+    return text && text.length > 25;
   };
   
   if (isLoading) {
@@ -85,10 +83,9 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
                           className="ml-2 p-1 rounded-md text-comerian-teal hover:bg-comerian-teal/20 transition-colors"
                           title={expandedColumns[header] ? "Collapse column" : "Expand column"}
                         >
-                          {expandedColumns[header] ? 
-                            <Minimize2 className="h-3.5 w-3.5" /> : 
-                            <Maximize2 className="h-3.5 w-3.5" />
-                          }
+                          <span className="text-xs">
+                            {expandedColumns[header] ? "Collapse" : "Expand"}
+                          </span>
                         </button>
                       </div>
                     </th>
@@ -99,15 +96,38 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
                 {currentRows.length > 0 ? (
                   currentRows.map((row, rowIndex) => (
                     <tr key={rowIndex} className="hover:bg-comerian-dark/50 transition-colors">
-                      {headers.map((header, colIndex) => (
-                        <td 
-                          key={`${rowIndex}-${colIndex}`} 
-                          className={`px-6 py-4 text-sm text-comerian-gray ${getColumnClass(header)}`}
-                          title={row[header] || ''}
-                        >
-                          {row[header] || ''}
-                        </td>
-                      ))}
+                      {headers.map((header, colIndex) => {
+                        const cellContent = row[header] || '';
+                        const needsExpansion = isTruncated(cellContent);
+                        const isExpanded = expandedColumns[header];
+                        
+                        return (
+                          <td 
+                            key={`${rowIndex}-${colIndex}`} 
+                            className={`px-6 py-4 text-sm text-comerian-gray ${isExpanded ? 'max-w-none' : 'max-w-[150px]'}`}
+                            title={cellContent}
+                            onClick={() => needsExpansion && toggleColumnExpansion(header)}
+                          >
+                            <div className={`flex items-center ${isExpanded ? '' : 'truncate'}`}>
+                              <span className={isExpanded ? '' : 'truncate'}>
+                                {cellContent}
+                              </span>
+                              {!isExpanded && needsExpansion && (
+                                <button 
+                                  className="ml-1 text-comerian-teal hover:text-comerian-accent flex-shrink-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleColumnExpansion(header);
+                                  }}
+                                  title="Click to expand"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))
                 ) : (

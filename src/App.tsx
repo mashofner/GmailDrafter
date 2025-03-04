@@ -308,12 +308,10 @@ function HomePage() {
           {/* Email template editor */}
           <div className="card">
             <h3 className="text-lg font-semibold text-white mb-4">Email Template</h3>
-            {user && headers.length > 0 && (
-              <p className="text-sm text-comerian-gray mb-2">
-                Use variables like {'{name}'} to personalize your emails. Available variables: {' '}
-                {headers.map(header => `{${header}}`).join(', ')}
-              </p>
-            )}
+            <p className="text-sm text-comerian-gray mb-3">
+              Create your email template below. Use the variable buttons to insert data from your sheet. 
+              When you click "Create Drafts", a draft email will be created in your Gmail account for each row in your sheet.
+            </p>
             <EmailTemplateEditor
               value={emailTemplate}
               onChange={setEmailTemplate}
@@ -338,10 +336,13 @@ function HomePage() {
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Create Drafts
+                  Create Drafts ({sheetData.length})
                 </>
               )}
             </button>
+            <p className="mt-2 text-xs text-comerian-gray">
+              This will create {sheetData.length} draft emails in your Gmail account. You can review and send them later.
+            </p>
           </div>
         </div>
       </main>
