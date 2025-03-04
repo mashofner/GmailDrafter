@@ -14,6 +14,7 @@ import UserGuide from './components/UserGuide';
 import ProgressBar from './components/ProgressBar';
 import config from './config';
 import Notification from './components/Notification';
+import FeedbackButton from './components/FeedbackButton';
 
 function HomePage() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -231,10 +232,10 @@ function HomePage() {
         <NeuralNetwork />
       </div>
       
-      {/* Status bar spacer for mobile - black background */}
-      <div className="h-[env(safe-area-inset-top)] bg-black w-full fixed top-0 left-0 right-0 z-50"></div>
+      {/* Status bar spacer for mobile - transparent */}
+      <div className="h-[env(safe-area-inset-top)] bg-transparent w-full fixed top-0 left-0 right-0 z-50"></div>
       
-      <header className="bg-black backdrop-blur-sm relative z-10 pt-[env(safe-area-inset-top)]">
+      <header className="bg-transparent backdrop-blur-sm relative z-10 pt-[env(safe-area-inset-top)]">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center space-x-2 sm:space-x-3">
             <Mail className="h-6 w-6 sm:h-7 sm:w-7 text-comerian-accent" />
@@ -298,7 +299,7 @@ function HomePage() {
         
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-b border-card-border">
+          <div className="md:hidden bg-gray-900/80 backdrop-blur-sm border-t border-b border-card-border">
             <div className="px-4 py-3 space-y-3">
               {user && (
                 <div className="px-3 py-2 bg-comerian-dark/50 rounded-md">
@@ -549,6 +550,9 @@ function HomePage() {
           </div>
         </div>
       </main>
+      
+      {/* Feedback Button */}
+      <FeedbackButton recipientEmail="mashofner@comeriandigital.net" />
       
       <Footer />
     </div>
