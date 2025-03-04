@@ -21,7 +21,7 @@ export const Footer: React.FC = () => {
               rel="noopener noreferrer"
               className="text-comerian-teal hover:text-comerian-accent transition-colors flex items-center"
             >
-              <span>Comerian Digital</span>
+              <span>Built by Comerian</span>
               <ExternalLink className="h-3.5 w-3.5 ml-1" />
             </a>
           </div>

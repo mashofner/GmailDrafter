@@ -151,14 +151,14 @@ function HomePage() {
             <h1 className="text-xl font-bold text-white">Comerian - Gmail Drafter</h1>
           </div>
           <div className="flex items-center space-x-6">
-            {/* Comerian Digital link - now more distinct */}
+            {/* Comerian link - now more distinct */}
             <a 
               href="https://comeriandigital.net" 
               target="_blank" 
               rel="noopener noreferrer"
               className="px-3 py-1.5 rounded-md border border-comerian-teal/30 bg-comerian-teal/10 text-comerian-teal hover:bg-comerian-teal/20 transition-colors flex items-center"
             >
-              <span>Comerian Digital</span>
+              <span>Built by Comerian</span>
               <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
             </a>
             
@@ -281,6 +281,9 @@ function HomePage() {
                 {isLoading ? 'Loading...' : 'Load Sheet'}
               </button>
             </div>
+            <p className="mt-2 text-sm text-comerian-gray">
+              Your sheet should have column headers in the first row. These will be used as variables in your email template.
+            </p>
           </div>
           
           {/* Sheet data table */}

@@ -75,7 +75,10 @@ const PrivacyPolicy: React.FC = () => {
               <li>The right to object to processing of your personal data</li>
             </ul>
             
-            <h2 className="text-xl font-semibold text-white mt-6 mb-3">7. Changes to This Privacy Policy</h2>
+            <h2 className="text-xl font-semibold text-white mt-6 mb-3">7. About Comerian</h2>
+            <p>This application was built by <a href="https://comeriandigital.net" target="_blank" rel="noopener noreferrer" className="text-comerian-teal hover:text-comerian-accent transition-colors">Comerian</a>, a company specializing in digital solutions and software development. Visit our website to learn more about our services and other applications.</p>
+            
+            <h2 className="text-xl font-semibold text-white mt-6 mb-3">8. Changes to This Privacy Policy</h2>
             <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</p>
           </div>
         </div>

@@ -47,10 +47,18 @@ exports.handler = async (event, context) => {
 
     const sheets = google.sheets({ version: 'v4', auth });
     
-    // Get sheet data
+    // First, get the spreadsheet to find all available sheets
+    const spreadsheet = await sheets.spreadsheets.get({
+      spreadsheetId: sheetId,
+    });
+    
+    // Get the first sheet's title (or use "Sheet1" as fallback)
+    const firstSheetTitle = spreadsheet.data.sheets?.[0]?.properties?.title || 'Sheet1';
+    
+    // Get sheet data from the first sheet
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: 'Sheet1', // Default sheet name, can be adjusted if needed
+      range: firstSheetTitle,
     });
 
     const rows = response.data.values;
@@ -65,9 +73,21 @@ exports.handler = async (event, context) => {
 
     // First row as headers
     const headers = rows[0];
+    
+    // Check if headers are empty or contain empty strings
+    if (headers.some(header => !header.trim())) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Sheet headers cannot be empty. Please ensure your first row contains valid column names.' }),
+        headers: { 'Content-Type': 'application/json' }
+      };
+    }
+    
+    // Map the data rows to objects using the headers
     const data = rows.slice(1).map(row => {
       const item = {};
       headers.forEach((header, index) => {
+        // Use the header as the key, and the corresponding cell value (or empty string if undefined)
         item[header] = row[index] || '';
       });
       return item;
@@ -82,7 +102,7 @@ exports.handler = async (event, context) => {
     console.error('Error loading sheet:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to load Google Sheet data' }),
+      body: JSON.stringify({ error: 'Failed to load Google Sheet data: ' + (error.message || 'Unknown error') }),
       headers: { 'Content-Type': 'application/json' }
     };
   }

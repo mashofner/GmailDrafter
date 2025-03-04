@@ -57,9 +57,8 @@ const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
                     Create a Google Sheet with your contact data. Make sure:
                   </p>
                   <ul className="list-disc pl-5 mt-2 text-comerian-gray">
-                    <li>The first row contains column headers (e.g., name, email, company)</li>
+                    <li>The first row contains column headers (these will be your variable names)</li>
                     <li>Each subsequent row contains data for one contact</li>
-                    <li>The sheet includes an "email" column with valid email addresses</li>
                     <li>The sheet is shared with anyone who has the link (view access)</li>
                   </ul>
                   <p className="text-comerian-gray mt-2">
@@ -116,7 +115,7 @@ const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
               <h3 className="text-lg font-medium text-white mb-2">Tips for Success</h3>
               <ul className="list-disc pl-5 text-comerian-gray">
                 <li>Make sure your Google Sheet is properly formatted with headers in the first row</li>
-                <li>Double-check that all email addresses in your sheet are valid</li>
+                <li>If you want to send emails, include a column with email addresses</li>
                 <li>Preview your data in the "Sheet Data Preview" section before creating drafts</li>
                 <li>Use the variable highlighting feature to ensure all variables are properly formatted</li>
                 <li>Review your drafts in Gmail before sending them</li>
