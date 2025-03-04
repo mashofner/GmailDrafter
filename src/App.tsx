@@ -266,7 +266,7 @@ function HomePage() {
                 onChange={(e) => setSheetUrl(e.target.value)}
                 placeholder="Paste Google Sheet URL here"
                 className="flex-1 px-4 py-2 bg-comerian-dark border border-card-border rounded-md focus:ring-comerian-teal focus:border-comerian-teal text-white"
-                disabled={!user}
+                disabled={!user || isLoading}
               />
               <button
                 onClick={handleLoadSheet}
@@ -277,8 +277,17 @@ function HomePage() {
                     : 'bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors btn-hover-effect'
                 }`}
               >
-                <Sheet className="h-4 w-4 mr-2" />
-                {isLoading ? 'Loading...' : 'Load Sheet'}
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-white rounded-full"></div>
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <Sheet className="h-4 w-4 mr-2" />
+                    Load Sheet
+                  </>
+                )}
               </button>
             </div>
             <p className="mt-2 text-sm text-comerian-gray">
@@ -289,28 +298,11 @@ function HomePage() {
           {/* Sheet data table */}
           <div className="card mb-6">
             <h3 className="text-lg font-semibold text-white mb-4">Sheet Data Preview</h3>
-            {headers.length > 0 ? (
-              <SheetDataTable headers={headers} data={sheetData} />
-            ) : (
-              <div className="border border-card-border rounded-md overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-700">
-                  <thead className="bg-comerian-dark">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider">Company</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-card-bg divide-y divide-gray-700">
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-comerian-gray">John Doe</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-comerian-gray">john@example.com</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-comerian-gray">Acme Inc</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <SheetDataTable 
+              headers={headers} 
+              data={sheetData} 
+              isLoading={isLoading}
+            />
           </div>
           
           {/* Email template editor */}
@@ -338,8 +330,17 @@ function HomePage() {
                   : 'bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-shadow btn-hover-effect'
               }`}
             >
-              <Send className="h-4 w-4 mr-2" />
-              {isLoading ? 'Creating...' : 'Create Drafts'}
+              {isLoading ? (
+                <>
+                  <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-white rounded-full"></div>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Create Drafts
+                </>
+              )}
             </button>
           </div>
         </div>

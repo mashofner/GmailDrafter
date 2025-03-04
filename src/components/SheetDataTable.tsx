@@ -1,11 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface SheetDataTableProps {
   headers: string[];
   data: any[];
+  isLoading?: boolean;
 }
 
-const SheetDataTable: React.FC<SheetDataTableProps> = ({ headers, data }) => {
+const SheetDataTable: React.FC<SheetDataTableProps> = ({ 
+  headers, 
+  data,
+  isLoading = false
+}) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  
+  // Calculate total pages
+  const totalPages = Math.ceil(data.length / rowsPerPage);
+  
+  // Get current page data
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = data.slice(indexOfFirstRow, indexOfLastRow);
+  
+  // Change page
+  const goToNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+  
+  const goToPreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+  
+  // Handle rows per page change
+  const handleRowsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRowsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing rows per page
+  };
+  
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-comerian-teal mb-4"></div>
+        <p className="text-comerian-gray text-lg font-medium">Loading Leads...</p>
+      </div>
+    );
+  }
+  
   return (
     <div className="overflow-x-auto">
       <div className="align-middle inline-block min-w-full">
@@ -25,8 +66,8 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({ headers, data }) => {
               </tr>
             </thead>
             <tbody className="bg-card-bg divide-y divide-gray-700">
-              {data.length > 0 ? (
-                data.map((row, rowIndex) => (
+              {currentRows.length > 0 ? (
+                currentRows.map((row, rowIndex) => (
                   <tr key={rowIndex} className="hover:bg-comerian-dark/50 transition-colors">
                     {headers.map((header, colIndex) => (
                       <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4 whitespace-nowrap text-sm text-comerian-gray">
@@ -46,9 +87,57 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({ headers, data }) => {
           </table>
         </div>
       </div>
-      <div className="mt-2 text-sm text-comerian-gray">
-        {data.length} {data.length === 1 ? 'row' : 'rows'} loaded
-      </div>
+      
+      {/* Pagination controls */}
+      {data.length > 0 && (
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center text-sm text-comerian-gray">
+            <span>
+              Showing {indexOfFirstRow + 1}-{Math.min(indexOfLastRow, data.length)} of {data.length} {data.length === 1 ? 'row' : 'rows'}
+            </span>
+            <div className="ml-4 flex items-center">
+              <span className="mr-2">Rows per page:</span>
+              <select
+                value={rowsPerPage}
+                onChange={handleRowsPerPageChange}
+                className="bg-comerian-dark border border-card-border rounded px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-comerian-teal"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={goToPreviousPage}
+              disabled={currentPage === 1}
+              className={`p-1 rounded-md ${
+                currentPage === 1
+                  ? 'text-gray-500 cursor-not-allowed'
+                  : 'text-comerian-teal hover:bg-comerian-teal/20'
+              }`}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <span className="text-sm text-comerian-gray">
+              Page {currentPage} of {totalPages || 1}
+            </span>
+            <button
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className={`p-1 rounded-md ${
+                currentPage === totalPages || totalPages === 0
+                  ? 'text-gray-500 cursor-not-allowed'
+                  : 'text-comerian-teal hover:bg-comerian-teal/20'
+              }`}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
