@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 
 interface SheetDataTableProps {
   headers: string[];
@@ -14,6 +14,7 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [expandedColumns, setExpandedColumns] = useState<Record<string, boolean>>({});
   
   // Calculate total pages
   const totalPages = Math.ceil(data.length / rowsPerPage);
@@ -36,6 +37,21 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
   const handleRowsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setRowsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset to first page when changing rows per page
+  };
+
+  // Toggle column expansion
+  const toggleColumnExpansion = (header: string) => {
+    setExpandedColumns(prev => ({
+      ...prev,
+      [header]: !prev[header]
+    }));
+  };
+  
+  // Get column class based on expansion state
+  const getColumnClass = (header: string) => {
+    return expandedColumns[header] 
+      ? "max-w-none" 
+      : "max-w-[150px] truncate";
   };
   
   if (isLoading) {
@@ -60,9 +76,21 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
                     <th
                       key={index}
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider"
+                      className={`px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider ${expandedColumns[header] ? 'min-w-[300px]' : 'w-[150px]'}`}
                     >
-                      {header}
+                      <div className="flex items-center justify-between">
+                        <span>{header}</span>
+                        <button 
+                          onClick={() => toggleColumnExpansion(header)}
+                          className="ml-2 p-1 rounded-md text-comerian-teal hover:bg-comerian-teal/20 transition-colors"
+                          title={expandedColumns[header] ? "Collapse column" : "Expand column"}
+                        >
+                          {expandedColumns[header] ? 
+                            <Minimize2 className="h-3.5 w-3.5" /> : 
+                            <Maximize2 className="h-3.5 w-3.5" />
+                          }
+                        </button>
+                      </div>
                     </th>
                   ))}
                 </tr>
@@ -72,7 +100,11 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
                   currentRows.map((row, rowIndex) => (
                     <tr key={rowIndex} className="hover:bg-comerian-dark/50 transition-colors">
                       {headers.map((header, colIndex) => (
-                        <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4 whitespace-nowrap text-sm text-comerian-gray">
+                        <td 
+                          key={`${rowIndex}-${colIndex}`} 
+                          className={`px-6 py-4 text-sm text-comerian-gray ${getColumnClass(header)}`}
+                          title={row[header] || ''}
+                        >
                           {row[header] || ''}
                         </td>
                       ))}
