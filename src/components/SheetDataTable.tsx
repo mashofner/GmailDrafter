@@ -54,7 +54,7 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
   
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center">
         <div className="w-full max-w-md mx-auto mb-4">
           <div className="h-2 bg-comerian-dark rounded-full overflow-hidden">
             <div className="h-full bg-comerian-teal animate-progress-indeterminate"></div>
@@ -68,8 +68,8 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
   return (
     <div className="flex flex-col h-full">
       {/* Table container with horizontal scroll */}
-      <div className="overflow-x-auto flex-grow mb-4">
-        <div className="align-middle inline-block min-w-full">
+      <div className="overflow-x-auto flex-grow mb-4 -mx-4 sm:mx-0">
+        <div className="align-middle inline-block min-w-full sm:px-0 px-4">
           <div className="shadow-sm overflow-hidden border border-card-border rounded-lg">
             <table className="min-w-full divide-y divide-gray-700">
               <thead className="bg-comerian-dark">
@@ -78,18 +78,19 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
                     <th
                       key={index}
                       scope="col"
-                      className={`px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider ${expandedColumns[header] ? 'min-w-[300px]' : 'w-[150px]'}`}
+                      className={`px-3 sm:px-6 py-3 text-left text-xs font-medium text-comerian-gray uppercase tracking-wider ${expandedColumns[header] ? 'min-w-[200px] sm:min-w-[300px]' : 'w-[120px] sm:w-[150px]'}`}
                     >
                       <div className="flex items-center justify-between">
-                        <span>{header}</span>
+                        <span className="truncate">{header}</span>
                         <button 
                           onClick={() => toggleColumnExpansion(header)}
-                          className="ml-2 p-1 rounded-md text-comerian-teal hover:bg-comerian-teal/20 transition-colors"
+                          className="ml-1 sm:ml-2 p-1 rounded-md text-comerian-teal hover:bg-comerian-teal/20 transition-colors"
                           title={expandedColumns[header] ? "Collapse column" : "Expand column"}
                         >
-                          <span className="text-xs">
+                          <span className="text-xs hidden sm:inline">
                             {expandedColumns[header] ? "Collapse" : "Expand"}
                           </span>
+                          <MoreHorizontal className="h-4 w-4 sm:hidden" />
                         </button>
                       </div>
                     </th>
@@ -108,7 +109,7 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
                         return (
                           <td 
                             key={`${rowIndex}-${colIndex}`} 
-                            className={`px-6 py-4 text-sm text-comerian-gray ${isExpanded ? 'max-w-none' : 'max-w-[150px]'}`}
+                            className={`px-3 sm:px-6 py-3 sm:py-4 text-sm text-comerian-gray ${isExpanded ? 'max-w-none' : 'max-w-[120px] sm:max-w-[150px]'}`}
                             title={cellContent}
                             onClick={() => needsExpansion && toggleColumnExpansion(header)}
                           >
@@ -149,21 +150,21 @@ const SheetDataTable: React.FC<SheetDataTableProps> = ({
       
       {/* Pagination controls - now in a fixed position at the bottom with spacing */}
       {data.length > 0 && (
-        <div className="pt-4 pb-2 border-t border-gray-700 bg-card-bg sticky left-0 right-0 bottom-0 flex items-center justify-between">
-          <div className="flex items-center text-sm text-comerian-gray">
-            <span>
+        <div className="pt-4 pb-2 border-t border-gray-700 bg-card-bg sticky left-0 right-0 bottom-0 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+          <div className="flex flex-col sm:flex-row items-center text-sm text-comerian-gray">
+            <span className="text-center sm:text-left">
               Showing {indexOfFirstRow + 1}-{Math.min(indexOfLastRow, data.length)} of {data.length} {data.length === 1 ? 'row' : 'rows'}
             </span>
-            <div className="ml-4 flex items-center">
-              <span className="mr-2">Rows per page:</span>
+            <div className="mt-2 sm:mt-0 sm:ml-4 flex items-center">
+              <span className="mr-2 text-xs sm:text-sm">Rows per page:</span>
               <select
                 value={rowsPerPage}
                 onChange={handleRowsPerPageChange}
-                className="bg-comerian-dark border border-card-border rounded px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-comerian-teal"
+                className="bg-comerian-dark border border-card-border rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-comerian-teal"
               >
+                <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={25}>25</option>
-                <option value={50}>50</option>
               </select>
             </div>
           </div>

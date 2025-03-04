@@ -31,7 +31,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
             type="button"
             onClick={() => handleInsertVariable(variable)}
             disabled={disabled}
-            className={`inline-flex items-center px-3 py-1.5 border text-xs font-medium rounded-md ${
+            className={`inline-flex items-center px-2 py-1.5 border text-xs font-medium rounded-md ${
               disabled 
                 ? 'text-gray-400 bg-gray-700 border-gray-600 cursor-not-allowed'
                 : 'text-white bg-comerian-teal/20 border-comerian-teal/30 hover:bg-comerian-teal/30 transition-colors'
@@ -57,7 +57,7 @@ Thanks for your interest in our products. We noticed you work at {company} and w
 
 Best regards,
 Your Name"
-        className={`w-full px-4 py-3 border rounded-md h-64 font-mono text-sm ${
+        className={`w-full px-4 py-3 border rounded-md h-48 sm:h-64 font-mono text-sm ${
           disabled 
             ? 'bg-comerian-dark text-gray-400 border-gray-700'
             : 'bg-comerian-dark focus:ring-comerian-teal focus:border-comerian-teal border-card-border text-white'

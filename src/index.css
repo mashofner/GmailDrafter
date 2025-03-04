@@ -7,6 +7,7 @@ body {
   color: #f8fafc;
   background-color: #0f172a;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Custom focus styles */
@@ -17,8 +18,8 @@ body {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -68,7 +69,7 @@ body {
 
 /* Card styles */
 .card {
-  @apply bg-card-bg backdrop-blur-sm p-8 rounded-xl border border-card-border shadow-card hover:shadow-[0_0_25px_rgba(0,0,0,0.7)] transition duration-300;
+  @apply bg-card-bg backdrop-blur-sm p-4 sm:p-8 rounded-xl border border-card-border shadow-card hover:shadow-[0_0_25px_rgba(0,0,0,0.7)] transition duration-300;
 }
 
 /* Notification animation */
@@ -119,4 +120,34 @@ body {
 
 .animate-progress-indeterminate {
   animation: progress-indeterminate 1.5s infinite linear;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .card {
+    @apply rounded-lg;
+  }
+  
+  input, select, button {
+    @apply text-sm;
+  }
+  
+  /* Improve touch targets on mobile */
+  button, a {
+    @apply min-h-[44px] flex items-center justify-center;
+  }
+}
+
+/* Fix iOS input styling */
+input, textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Fix mobile viewport height issues */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
 }

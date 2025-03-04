@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Mail, Sheet, Send, LogIn, LogOut, ChevronRight, HelpCircle, ExternalLink, CheckCircle } from 'lucide-react';
+import { Mail, Sheet, Send, LogIn, LogOut, ChevronRight, HelpCircle, ExternalLink, CheckCircle, Menu, X as XIcon } from 'lucide-react';
 import SheetDataTable from './components/SheetDataTable';
 import EmailTemplateEditor from './components/EmailTemplateEditor';
 import { findVariablesInTemplate } from './utils/templateUtils';
@@ -26,6 +26,7 @@ function HomePage() {
   const [success, setSuccess] = useState('');
   const [showGuide, setShowGuide] = useState(false);
   const [loadingOperation, setLoadingOperation] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notification, setNotification] = useState<{
     show: boolean;
     message: string;
@@ -74,6 +75,7 @@ function HomePage() {
     signOut();
     setSuccess('Successfully signed out');
     setTimeout(() => setSuccess(''), 3000);
+    setMobileMenuOpen(false);
   };
 
   const handleLoadSheet = async () => {
@@ -230,12 +232,14 @@ function HomePage() {
       </div>
       
       <header className="bg-transparent backdrop-blur-sm relative z-10">
-        <div className="max-w-7xl mx-auto px-6 py-6 sm:px-8 lg:px-10 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <Mail className="h-7 w-7 text-comerian-accent" />
-            <h1 className="text-xl font-bold text-white">Comerian - Gmail Drafter</h1>
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <Mail className="h-6 w-6 sm:h-7 sm:w-7 text-comerian-accent" />
+            <h1 className="text-lg sm:text-xl font-bold text-white">Comerian - Gmail Drafter</h1>
           </div>
-          <div className="flex items-center space-x-6">
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-6">
             {/* Comerian link - now more distinct */}
             <a 
               href="https://comeriandigital.net" 
@@ -272,10 +276,83 @@ function HomePage() {
               </>
             )}
           </div>
+          
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-md text-comerian-accent hover:bg-comerian-teal/10 transition-colors"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileMenuOpen ? (
+                <XIcon className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-comerian-dark/95 backdrop-blur-sm border-t border-b border-card-border">
+            <div className="px-4 py-3 space-y-3">
+              {user && (
+                <div className="px-3 py-2 bg-comerian-dark/50 rounded-md">
+                  <p className="text-sm font-medium text-comerian-accent">
+                    Signed in as:
+                  </p>
+                  <p className="text-white truncate">{user.email}</p>
+                </div>
+              )}
+              
+              <button
+                onClick={() => {
+                  setShowGuide(!showGuide);
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full px-3 py-2 rounded-md border border-comerian-accent/30 bg-comerian-accent/10 text-comerian-accent hover:bg-comerian-accent/20 transition-colors flex items-center justify-center"
+              >
+                <HelpCircle className="h-4 w-4 mr-1.5" />
+                <span>Help Guide</span>
+              </button>
+              
+              <a 
+                href="https://comeriandigital.net" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-full px-3 py-2 rounded-md border border-comerian-teal/30 bg-comerian-teal/10 text-comerian-teal hover:bg-comerian-teal/20 transition-colors flex items-center justify-center"
+              >
+                <span>Built by Comerian</span>
+                <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+              </a>
+              
+              {user ? (
+                <button
+                  onClick={handleSignOut}
+                  className="w-full px-3 py-2 border border-comerian-teal text-sm font-medium rounded-md text-white bg-transparent hover:bg-comerian-teal/20 transition-colors flex items-center justify-center"
+                >
+                  <LogOut className="h-4 w-4 mr-1.5" />
+                  Sign Out
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    handleSignIn();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full px-3 py-2 bg-[#3b82f6] text-white font-medium rounded-md hover:bg-[#2563eb] transition-colors flex items-center justify-center"
+                >
+                  <LogIn className="h-4 w-4 mr-1.5" />
+                  Sign in with Google
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 relative z-10">
         {/* User Guide */}
         {showGuide && <UserGuide onClose={() => setShowGuide(false)} />}
         
@@ -321,12 +398,12 @@ function HomePage() {
         )}
         
         {!user ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold mb-4 text-white">
+          <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+            <div className="text-center mb-8 sm:mb-10">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-white">
                 Welcome to Gmail Drafter
               </h2>
-              <p className="text-comerian-gray text-lg max-w-2xl mx-auto">
+              <p className="text-comerian-gray text-base sm:text-lg max-w-2xl mx-auto px-4">
                 Sign in with Google to create email drafts from your Google Sheets data
               </p>
             </div>
@@ -335,7 +412,7 @@ function HomePage() {
               <button
                 onClick={handleSignIn}
                 disabled={loadingOperation === 'auth'}
-                className="flex items-center px-8 py-3 bg-[#3b82f6] text-white font-medium rounded-md hover:shadow-lg transition-shadow btn-hover-effect relative"
+                className="flex items-center px-6 sm:px-8 py-3 bg-[#3b82f6] text-white font-medium rounded-md hover:shadow-lg transition-shadow btn-hover-effect relative"
               >
                 {loadingOperation === 'auth' ? (
                   <>
@@ -366,11 +443,11 @@ function HomePage() {
         ) : null}
         
         {/* Main app UI - shown to all users, but disabled for non-authenticated users */}
-        <div className={`w-full max-w-4xl mx-auto ${!user ? 'opacity-50 pointer-events-none mt-12' : ''}`}>
+        <div className={`w-full max-w-4xl mx-auto ${!user ? 'opacity-50 pointer-events-none mt-8 sm:mt-12' : ''}`}>
           {/* Google Sheet URL input */}
           <div className="card mb-6">
             <h3 className="text-lg font-semibold text-white mb-4">Load Google Sheet</h3>
-            <div className="flex space-x-4">
+            <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0">
               <input
                 type="text"
                 value={sheetUrl}
@@ -382,7 +459,7 @@ function HomePage() {
               <button
                 onClick={handleLoadSheet}
                 disabled={isLoading || !sheetUrl || !user}
-                className={`px-4 py-2 font-medium rounded-md flex items-center ${
+                className={`px-4 py-2 font-medium rounded-md flex items-center justify-center ${
                   isLoading || !sheetUrl || !user
                     ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                     : 'bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-colors btn-hover-effect'
@@ -445,7 +522,7 @@ function HomePage() {
             <button
               onClick={handleCreateDrafts}
               disabled={isLoading || !emailTemplate || sheetData.length === 0 || !user}
-              className={`mt-4 px-6 py-2 font-medium rounded-md flex items-center ${
+              className={`mt-4 w-full sm:w-auto px-6 py-2 font-medium rounded-md flex items-center justify-center ${
                 isLoading || !emailTemplate || sheetData.length === 0 || !user
                   ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                   : 'bg-[#3b82f6] text-white hover:bg-[#2563eb] transition-shadow btn-hover-effect'

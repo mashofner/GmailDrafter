@@ -38,7 +38,7 @@ const Notification: React.FC<NotificationProps> = ({
 
   return (
     <div 
-      className={`fixed top-24 right-6 z-50 max-w-md w-full transform transition-all duration-300 ${
+      className={`fixed top-16 sm:top-24 right-4 sm:right-6 z-50 max-w-[calc(100vw-2rem)] sm:max-w-md w-full transform transition-all duration-300 ${
         isExiting ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
       }`}
     >
@@ -52,18 +52,18 @@ const Notification: React.FC<NotificationProps> = ({
         <div className="flex-shrink-0 mr-3">
           {type === 'success' ? (
             <div className="bg-white/20 rounded-full p-2">
-              <CheckCircle className="h-6 w-6 text-white" />
+              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
           ) : (
             <div className="bg-white/20 rounded-full p-2">
-              <AlertCircle className="h-6 w-6 text-white" />
+              <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
           )}
         </div>
         
         <div className="flex-1">
           <div className="flex justify-between items-start">
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-base sm:text-lg font-semibold text-white">
               {type === 'success' ? 'Success!' : 'Error'}
             </h3>
             <button 
@@ -74,10 +74,10 @@ const Notification: React.FC<NotificationProps> = ({
             </button>
           </div>
           
-          <p className="text-white/90 mt-1">{message}</p>
+          <p className="text-sm sm:text-base text-white/90 mt-1">{message}</p>
           
           {type === 'success' && count && (
-            <div className="mt-3 flex items-center text-white/90">
+            <div className="mt-3 flex items-center text-white/90 text-sm">
               <Mail className="h-4 w-4 mr-2" />
               <span>
                 {count} {count === 1 ? 'draft' : 'drafts'} created in Gmail
