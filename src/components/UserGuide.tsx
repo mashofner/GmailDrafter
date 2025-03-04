@@ -60,6 +60,7 @@ const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
                     <li>The first row contains column headers (these will be your variable names)</li>
                     <li>Each subsequent row contains data for one contact</li>
                     <li>The sheet is shared with anyone who has the link (view access)</li>
+                    <li><strong>Include an "email" column</strong> with recipient email addresses - these will be used in the "To" field of your drafts</li>
                   </ul>
                   <p className="text-comerian-gray mt-2">
                     Copy the URL of your Google Sheet and paste it in the "Load Google Sheet" field, then click "Load Sheet".
@@ -87,6 +88,9 @@ const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
                   <p className="text-comerian-gray mt-2">
                     You can use the "Insert" buttons above the editor to easily add variables.
                   </p>
+                  <p className="text-comerian-gray mt-2">
+                    <strong>Note:</strong> You don't need to include the recipient's email in your template - it will automatically be used in the "To" field of each draft.
+                  </p>
                 </div>
               </div>
               
@@ -101,6 +105,7 @@ const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
                   </p>
                   <ul className="list-disc pl-5 mt-2 text-comerian-gray">
                     <li>Create one draft for each row in your sheet</li>
+                    <li>Address each draft to the email address from the corresponding row</li>
                     <li>Replace variables with the corresponding data from each row</li>
                     <li>Save these as drafts in your Gmail account (they won't be sent automatically)</li>
                   </ul>
@@ -115,7 +120,7 @@ const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
               <h3 className="text-lg font-medium text-white mb-2">Tips for Success</h3>
               <ul className="list-disc pl-5 text-comerian-gray">
                 <li>Make sure your Google Sheet is properly formatted with headers in the first row</li>
-                <li>If you want to send emails, include a column with email addresses</li>
+                <li><strong>Always include an "email" column</strong> with recipient email addresses</li>
                 <li>Preview your data in the "Sheet Data Preview" section before creating drafts</li>
                 <li>Use the variable highlighting feature to ensure all variables are properly formatted</li>
                 <li>Review your drafts in Gmail before sending them</li>

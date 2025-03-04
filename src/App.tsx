@@ -116,14 +116,39 @@ function HomePage() {
       return;
     }
 
+    // Check if the sheet data has an email column
+    const hasEmailColumn = headers.some(header => 
+      header.toLowerCase() === 'email' || 
+      header.toLowerCase().includes('email')
+    );
+
+    if (!hasEmailColumn) {
+      setError('Your sheet must contain an "email" column with recipient email addresses');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     
     try {
       let successCount = 0;
+      let missingEmailCount = 0;
       
       for (const contact of sheetData) {
         let emailContent = emailTemplate;
+        
+        // Find the email field (could be named "email", "Email", "EMAIL", etc.)
+        const emailField = Object.keys(contact).find(key => 
+          key.toLowerCase() === 'email' || 
+          key.toLowerCase().includes('email')
+        );
+        
+        const recipientEmail = emailField ? contact[emailField] : '';
+        
+        if (!recipientEmail) {
+          missingEmailCount++;
+          continue; // Skip this contact if no email is found
+        }
         
         // Replace variables in template
         Object.keys(contact).forEach(key => {
@@ -131,9 +156,9 @@ function HomePage() {
           emailContent = emailContent.replace(regex, contact[key]);
         });
         
-        // Create draft
+        // Create draft with the recipient's email address
         await createGmailDraft(user.accessToken, {
-          to: contact.email || '',
+          to: recipientEmail,
           subject: 'Draft Email', // Could be customizable
           message: emailContent
         });
@@ -141,12 +166,16 @@ function HomePage() {
         successCount++;
       }
       
-      setSuccess(`${successCount} drafts created successfully!`);
+      if (missingEmailCount > 0) {
+        setSuccess(`${successCount} drafts created successfully! (${missingEmailCount} contacts skipped due to missing email addresses)`);
+      } else {
+        setSuccess(`${successCount} drafts created successfully!`);
+      }
       
       // Show notification
       setNotification({
         show: true,
-        message: `${successCount} Gmail drafts created successfully!`,
+        message: `${successCount} Gmail drafts created successfully!${missingEmailCount > 0 ? ` (${missingEmailCount} skipped)` : ''}`,
         type: 'success',
         count: successCount
       });
@@ -340,6 +369,12 @@ function HomePage() {
             <p className="mt-2 text-sm text-comerian-gray">
               Your sheet should have column headers in the first row. These will be used as variables in your email template.
             </p>
+            <div className="mt-3 p-3 bg-comerian-teal/10 border border-comerian-teal/20 rounded-md">
+              <p className="text-sm text-comerian-accent">
+                <strong>Important:</strong> Your sheet must include an "email" column containing recipient email addresses. 
+                These addresses will be used in the "To" field of your draft emails.
+              </p>
+            </div>
           </div>
           
           {/* Sheet data table */}
@@ -359,6 +394,12 @@ function HomePage() {
               Create your email template below. Use the variable buttons to insert data from your sheet. 
               When you click "Create Drafts", a draft email will be created in your Gmail account for each row in your sheet.
             </p>
+            <div className="mb-4 p-3 bg-comerian-teal/10 border border-comerian-teal/20 rounded-md">
+              <p className="text-sm text-comerian-accent">
+                <strong>How it works:</strong> Each draft will be addressed to the email address in the "email" column of your sheet.
+                All variables in your template (like {'{name}'}) will be replaced with the corresponding data from each row.
+              </p>
+            </div>
             <EmailTemplateEditor
               value={emailTemplate}
               onChange={setEmailTemplate}
