@@ -11,7 +11,10 @@ const PrivacyPolicy: React.FC = () => {
         <NeuralNetwork />
       </div>
       
-      <header className="bg-transparent backdrop-blur-sm relative z-10">
+      {/* Status bar spacer for mobile - black background */}
+      <div className="h-[env(safe-area-inset-top)] bg-black w-full fixed top-0 left-0 right-0 z-50"></div>
+      
+      <header className="bg-black backdrop-blur-sm relative z-10 pt-[env(safe-area-inset-top)]">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center">
             <Link to="/" className="flex items-center text-comerian-accent hover:text-white transition-colors">
