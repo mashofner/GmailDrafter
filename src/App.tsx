@@ -21,7 +21,7 @@ function HomePage() {
   const [sheetUrl, setSheetUrl] = useState('');
   const [sheetData, setSheetData] = useState<any[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
-  const [emailTemplate, setEmailTemplate] = useState('');
+  const [emailTemplate, setEmailTemplate] = useState('Subject Line\n---\nEmail Body');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -108,12 +108,14 @@ function HomePage() {
     setSheetData([]);
     setHeaders([]);
     setSheetUrl('');
-    setEmailTemplate('');
+    setEmailTemplate('Subject Line\n---\nEmail Body');
   };
 
   const handleCreateDrafts = async () => {
-    if (!emailTemplate) {
-      setError('Please enter an email template');
+    const [subject, body] = emailTemplate.split('\n---\n');
+    
+    if (!subject || !body) {
+      setError('Please enter both a subject line and email body');
       return;
     }
 
@@ -149,7 +151,8 @@ function HomePage() {
       
       for (let i = 0; i < sheetData.length; i++) {
         const contact = sheetData[i];
-        let emailContent = emailTemplate;
+        let emailSubject = subject;
+        let emailBody = body;
         
         // Find the email field (could be named "email", "Email", "EMAIL", etc.)
         const emailField = Object.keys(contact).find(key => 
@@ -167,14 +170,15 @@ function HomePage() {
         // Replace variables in template
         Object.keys(contact).forEach(key => {
           const regex = new RegExp(`{${key}}`, 'g');
-          emailContent = emailContent.replace(regex, contact[key]);
+          emailSubject = emailSubject.replace(regex, contact[key]);
+          emailBody = emailBody.replace(regex, contact[key]);
         });
         
         // Create draft with the recipient's email address
         await createGmailDraft(user.accessToken, {
           to: recipientEmail,
-          subject: 'Draft Email', // Could be customizable
-          message: emailContent
+          subject: emailSubject,
+          message: emailBody
         });
         
         successCount++;
